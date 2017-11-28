@@ -25,22 +25,29 @@ class ViewController: UIViewController {
         button.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
         button.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
         
-        button.widthAnchor.constraint(equalToConstant: 150).isActive = true
+        button.widthAnchor.constraint(equalToConstant: 200).isActive = true
         button.heightAnchor.constraint(equalToConstant: 40).isActive = true
         
         
-        button.dropView.dropDownOptions = ["Hello","World"]
+        button.dropView.dropDownOptions = ["Blue","Green", "Purple", "Orange", "Black", "White", "Pink", "Teal"]
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
-
 }
 
-class DropDownBtn: UIButton {
+protocol dropDownProtocol {
+    func dropDownPressed(string: String)
+}
+
+class DropDownBtn: UIButton, dropDownProtocol {
+    
+    func dropDownPressed(string: String) {
+        self.setTitle(string, for: .normal)
+        self.dismissDropDown()
+    }
     
     var dropView = DropDownView()
     
@@ -53,7 +60,7 @@ class DropDownBtn: UIButton {
         self.backgroundColor = UIColor.darkGray
         
         dropView = DropDownView.init(frame: CGRect.init(x: 0, y: 0, width: 0, height: 0))
-        
+        dropView.delegate = self
         dropView.translatesAutoresizingMaskIntoConstraints = false
         
        
@@ -111,17 +118,34 @@ class DropDownBtn: UIButton {
         
     }
     
-    
+    func dismissDropDown(){
+        isOpen = false
+        
+        NSLayoutConstraint.deactivate([self.height])
+        self.height.constant = 0
+        NSLayoutConstraint.activate([self.height])
+        
+        UIView.animate(withDuration: 0.5, delay: 0.5, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: .curveEaseInOut, animations: {
+            self.dropView.center.y -= self.dropView.frame.height/2
+            self.dropView.layoutIfNeeded()
+        }, completion: nil)
+        
+
+    }
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("Init(coder:) had not been implemented")
     }
 }
 
+
+
 class DropDownView: UIView, UITableViewDelegate, UITableViewDataSource {
     var dropDownOptions = [String]()
     
     var tableView = UITableView()
+    
+    var delegate: dropDownProtocol!
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -164,7 +188,9 @@ class DropDownView: UIView, UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print(dropDownOptions[indexPath.row])
+        
+        self.delegate.dropDownPressed(string: dropDownOptions[indexPath.row])
+        self.tableView.deselectRow(at: indexPath, animated: true)
     }
     
 }
